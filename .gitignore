@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+# Cardápios gerados (reproduzíveis pela semente) e saídas brutas das execuções.
+data/
+runs/*/menus.jsonl
+.env
+runs/sanity-*
+runs/results.*
