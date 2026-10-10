@@ -3,6 +3,11 @@
 Os itens são casados pelo nome (sem acento, caixa ou pontuação, com tolerância a erro de
 leitura). Item lido sem par no gabarito conta como **inventado ou duplicado** (falso positivo).
 Item do gabarito sem par conta como **perdido** (falso negativo).
+
+Há dois modos de casar. O **estrito** compara só o nome. O **tolerante** também aceita o nome lido
+que absorveu a descrição do gabarito ("Água Mineral 500 ml" para o nome "Água Mineral" com
+descrição "500 ml"), o que é a mesma informação escrita de outro jeito. O tolerante foi acrescentado
+depois de ver os primeiros resultados reais; por isso as duas métricas são sempre reportadas juntas.
 """
 
 from __future__ import annotations
@@ -47,6 +52,7 @@ class Item:
     category: str
     name: str
     price: float | None
+    description: str = ""
 
 
 def flatten(menu: Any) -> list[Item]:
@@ -64,6 +70,7 @@ def flatten(menu: Any) -> list[Item]:
                         str(cat.get("name", "")),
                         str(product["name"]),
                         to_price(product.get("price")),
+                        str(product.get("description") or ""),
                     )
                 )
     return items
@@ -86,14 +93,23 @@ class MenuScore:
         return asdict(self)
 
 
-def match(truth: list[Item], pred: list[Item]) -> list[tuple[int, int]]:
-    """Casamento guloso pelos pares mais parecidos primeiro (nome exato antes do aproximado)."""
+def match(
+    truth: list[Item], pred: list[Item], tolerant: bool = False
+) -> list[tuple[int, int]]:
+    """Casamento guloso pelos pares mais parecidos primeiro (nome exato antes do aproximado).
+
+    No modo `tolerant`, o nome do gabarito também vale com a descrição colada ao final.
+    """
     pairs = []
-    t_norm = [norm(t.name) for t in truth]
+    t_norm = [[norm(t.name)] for t in truth]
+    if tolerant:
+        for variants, t in zip(t_norm, truth, strict=True):
+            if t.description:
+                variants.append(norm(f"{t.name} {t.description}"))
     p_norm = [norm(p.name) for p in pred]
-    for i, tn in enumerate(t_norm):
+    for i, variants in enumerate(t_norm):
         for j, pn in enumerate(p_norm):
-            score = fuzz.token_sort_ratio(tn, pn)
+            score = max(fuzz.token_sort_ratio(tn, pn) for tn in variants)
             if score >= NAME_THRESHOLD:
                 pairs.append((score, i, j))
     pairs.sort(key=lambda x: (-x[0], x[1], x[2]))
@@ -108,14 +124,16 @@ def match(truth: list[Item], pred: list[Item]) -> list[tuple[int, int]]:
     return matched
 
 
-def score(truth: dict[str, Any], prediction: Any, inventory: bool = True) -> MenuScore:
+def score(
+    truth: dict[str, Any], prediction: Any, inventory: bool = True, tolerant: bool = False
+) -> MenuScore:
     """Nota de um cardápio. `prediction=None` (sem JSON) perde todos os itens."""
     t_items = flatten(truth)
     if prediction is None:
         return MenuScore(fn=len(t_items), json_valid=False, schema_errors=["sem resposta"])
     errors = validate(prediction, inventory)
     p_items = flatten(prediction)
-    matched = match(t_items, p_items)
+    matched = match(t_items, p_items, tolerant)
     result = MenuScore(
         tp=len(matched),
         fp=len(p_items) - len(matched),

@@ -1,0 +1,147 @@
+{
+  "run_id": "openai-gpt-4.1-nano-high",
+  "reader": "openai",
+  "model": "gpt-4.1-nano",
+  "config": {
+    "inventory": true,
+    "detail": "high",
+    "reasoning_effort": null
+  },
+  "dataset": {
+    "dir": "data/synthetic",
+    "seed": 7,
+    "menus_total": 60
+  },
+  "menus_run": 4,
+  "stopped_by_budget": false,
+  "aborted_on_errors": true,
+  "first_error": "NotFoundError: Error code: 404 - The model `gpt-4.1-nano` has been deprecated, learn more here: https://platform.openai.com/docs/deprecations",
+  "max_usd": 0.12,
+  "spent_usd": 0.0,
+  "price_unknown": false,
+  "overall": {
+    "menus": 4,
+    "item_precision": 0.0,
+    "item_recall": 0.0,
+    "item_f1": 0.0,
+    "price_accuracy": 0.0,
+    "category_accuracy": 0.0,
+    "hallucination_rate": 0.0,
+    "json_valid_rate": 0.0,
+    "exact_menu_rate": 0.0
+  },
+  "by_style": {
+    "pdf_digital_2col": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    },
+    "pdf_digital_clean": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    },
+    "pdf_scan": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    },
+    "photo_straight": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    }
+  },
+  "tokens_per_menu": {
+    "input": 0.0,
+    "output": 0.0,
+    "reasoning": 0.0
+  },
+  "cost_per_menu_usd": 0.0,
+  "latency_s": {
+    "p50": 1.446,
+    "p95": 2.271
+  },
+  "errors": 4,
+  "overall_tolerant": {
+    "menus": 4,
+    "item_precision": 0.0,
+    "item_recall": 0.0,
+    "item_f1": 0.0,
+    "price_accuracy": 0.0,
+    "category_accuracy": 0.0,
+    "hallucination_rate": 0.0,
+    "json_valid_rate": 0.0,
+    "exact_menu_rate": 0.0
+  },
+  "by_style_tolerant": {
+    "pdf_digital_2col": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    },
+    "pdf_digital_clean": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    },
+    "pdf_scan": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    },
+    "photo_straight": {
+      "menus": 1,
+      "item_precision": 0.0,
+      "item_recall": 0.0,
+      "item_f1": 0.0,
+      "price_accuracy": 0.0,
+      "category_accuracy": 0.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 0.0,
+      "exact_menu_rate": 0.0
+    }
+  }
+}

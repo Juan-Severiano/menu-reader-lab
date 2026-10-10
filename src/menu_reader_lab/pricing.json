@@ -19,7 +19,8 @@
       "input": 0.1,
       "cached_input": 0.025,
       "output": 0.4,
-      "source": "https://developers.openai.com/api/docs/pricing"
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "a API respondeu 404 (modelo descontinuado) em 01/11/2026, embora a página de preços ainda o liste"
     },
     "claude-haiku-5-5": {
       "input": 0.1,
@@ -48,6 +49,48 @@
       "input": 0.25,
       "output": 1.5,
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    "gpt-6-luna": {
+      "input": 0.1,
+      "cached_input": 0.01,
+      "output": 0.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "modelo de raciocínio: os tokens de raciocínio são cobrados como saída"
+    },
+    "gpt-5.6-luna": {
+      "input": 0.2,
+      "cached_input": 0.02,
+      "output": 1.2,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "modelo de raciocínio: os tokens de raciocínio são cobrados como saída"
+    },
+    "gpt-5.4-nano": {
+      "input": 0.2,
+      "cached_input": 0.02,
+      "output": 1.25,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "modelo de raciocínio: os tokens de raciocínio são cobrados como saída"
+    },
+    "gpt-5.4-mini": {
+      "input": 0.75,
+      "cached_input": 0.075,
+      "output": 4.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "modelo de raciocínio: os tokens de raciocínio são cobrados como saída"
+    },
+    "gpt-5-nano": {
+      "input": 0.05,
+      "cached_input": 0.005,
+      "output": 0.4,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "modelo de raciocínio: os tokens de raciocínio são cobrados como saída"
+    },
+    "gpt-5-mini": {
+      "input": 0.25,
+      "cached_input": 0.025,
+      "output": 2.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "nota": "modelo de raciocínio: os tokens de raciocínio são cobrados como saída"
     }
   }
 }
