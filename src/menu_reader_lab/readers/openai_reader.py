@@ -1,7 +1,8 @@
 """Leitor da OpenAI (Responses API): a régua, equivalente ao leitor em uso em produto.
 
 Uma chamada por cardápio, imagens em base64 com `detail` configurável, PDF como arquivo e saída
-em JSON Schema estrito. Modelos de raciocínio aceitam `reasoning_effort`: os tokens de raciocínio
+em JSON Schema estrito. Duas alavancas de custo opcionais: `max_side` reduz a foto antes de enviar
+e `pdf_as_text` manda só o texto de PDF que tem camada de texto (PDF escaneado segue como arquivo). Modelos de raciocínio aceitam `reasoning_effort`: os tokens de raciocínio
 são cobrados como saída, então o esforço é parte do custo que o laboratório mede.
 
 Os testes usam um cliente falso e conferem o formato do pedido e da resposta. Cada modelo e cada
@@ -17,6 +18,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from ..prepare import pdf_text, shrink_image
 from ..schema import SYSTEM_INSTRUCTIONS, build_schema, request_text
 from .base import ReadResult, Usage
 
@@ -39,12 +41,16 @@ class OpenAIReader:
         inventory: bool = True,
         max_output_tokens: int | None = None,
         reasoning_effort: str | None = None,
+        max_side: int | None = None,
+        pdf_as_text: bool = False,
         client: Any = None,
     ) -> None:
         self.model = model
         self.detail = detail
         self.inventory = inventory
         self.reasoning_effort = reasoning_effort
+        self.max_side = max_side
+        self.pdf_as_text = pdf_as_text
         # O raciocínio gasta tokens de saída antes do JSON, e a OpenAI recomenda reservar ao menos
         # 25 mil para raciocínio e saída. O limite só protege: cobra-se o que for gerado.
         thinks = reasoning_effort not in (None, "none")
@@ -68,8 +74,14 @@ class OpenAIReader:
             {"type": "input_text", "text": request_text(self.inventory)}
         ]
         for path in files:
-            data = base64.b64encode(path.read_bytes()).decode("ascii")
             if path.suffix.lower() == ".pdf":
+                text = pdf_text(path) if self.pdf_as_text else None
+                if text is not None:
+                    content.append(
+                        {"type": "input_text", "text": f"Texto do PDF {path.name}:\n{text}"}
+                    )
+                    continue
+                data = base64.b64encode(path.read_bytes()).decode("ascii")
                 content.append(
                     {
                         "type": "input_file",
@@ -77,15 +89,18 @@ class OpenAIReader:
                         "file_data": f"data:application/pdf;base64,{data}",
                     }
                 )
+                continue
+            if self.max_side:
+                raw, mime = shrink_image(path, self.max_side)
             else:
-                mime = _IMAGE_TYPES[path.suffix.lower()]
-                content.append(
-                    {
-                        "type": "input_image",
-                        "detail": self.detail,
-                        "image_url": f"data:{mime};base64,{data}",
-                    }
-                )
+                raw, mime = path.read_bytes(), _IMAGE_TYPES[path.suffix.lower()]
+            content.append(
+                {
+                    "type": "input_image",
+                    "detail": self.detail,
+                    "image_url": f"data:{mime};base64,{base64.b64encode(raw).decode('ascii')}",
+                }
+            )
         return content
 
     def read(self, files: list[Path]) -> ReadResult:

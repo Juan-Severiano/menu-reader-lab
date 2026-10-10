@@ -20,7 +20,7 @@ Projeto no **Dia 1**, com duas rodadas reais feitas (7 modelos da OpenAI em 10 c
 | Varredura de vários modelos sob um teto total de gasto (`sweep`) | feito |
 | Reavaliar execuções salvas sem chamar a API (`rescore`) | feito |
 | Leitores da Anthropic e do Gemini | não feito |
-| Alavancas de otimização (reduzir imagem, texto do PDF, cache, saída compacta) | não feito (só "modelo menor" foi medido) |
+| Alavancas de otimização | "modelo menor" **medido**; reduzir a foto e texto do PDF **implementados e testados, ainda sem medir com a API**; cache e saída compacta não feitos |
 | Modelos de visão locais, OCR local e cascata | não feito |
 | Cardápios reais | não feito (ficam no privado, com autorização de cada lojista) |
 
@@ -93,7 +93,7 @@ Antes de medir qualquer modelo, o avaliador foi testado com leitores de custo ze
 | `noisy` 10% | perde 10% dos itens, erra 10% dos preços, renomeia 5%, inventa 5% | 0,8787 | 0,8584 | 0,9037 | 0,1001 |
 | `noisy` 30% | perde 30%, erra 30%, renomeia 15%, inventa 15% | 0,6557 | 0,5894 | 0,7076 | 0,2610 |
 
-Com 10% de ruído, a revocação esperada é perto de 0,86 (10% perdidos mais ~5% renomeados) e o inventado perto de 0,10: bate. Os 50 testes automatizados cobrem isso, o gerador, o cálculo de custo, o formato do pedido à OpenAI, o teto de gasto, a varredura, o casamento tolerante e a reavaliação.
+Com 10% de ruído, a revocação esperada é perto de 0,86 (10% perdidos mais ~5% renomeados) e o inventado perto de 0,10: bate. Os 57 testes automatizados cobrem isso, o gerador, o cálculo de custo, o formato do pedido à OpenAI, o teto de gasto, a varredura, o casamento tolerante, a reavaliação e as duas alavancas de preparo (foto reduzida e texto do PDF).
 
 ## Resultados reais
 
@@ -165,7 +165,11 @@ uv run --extra openai menu-lab run --reader openai --model gpt-4.1 --detail high
 uv run --extra openai menu-lab sweep --models gpt-6-luna:none gpt-6-luna:low gpt-4.1-mini \
     --max-usd-total 0.50 --max-usd-each 0.12 --limit 10
 
-# 5. refazer as notas com o avaliador atual, sem chamar a API, e montar o relatório
+# 5. alavancas de custo (o efeito em qualidade só se sabe medindo, sob teto de gasto)
+uv run --extra openai menu-lab run --reader openai --model gpt-6-luna --reasoning-effort none \
+    --max-side 1568 --pdf-text --max-usd 0.10 --run-id openai-gpt-6-luna-lado1568-pdftexto
+
+# 6. refazer as notas com o avaliador atual, sem chamar a API, e montar o relatório
 uv run menu-lab rescore
 uv run menu-lab report
 ```
@@ -212,8 +216,8 @@ Preços por milhão de tokens estão em [`pricing.json`](src/menu_reader_lab/pri
 |---|---|---|---|
 | 1 | **Saída compacta:** chaves curtas, sem campos opcionais vazios, formato por linha | tokens de saída por item | não medida |
 | 2 | **Modelo menor** | F1 de itens contra a régua | medida só na OpenAI |
-| 3 | **Reduzir a foto** antes de enviar (lado maior ≤ 1.568 px, JPEG) e `detail` / `media_resolution` mais baixos | tokens de entrada e erro em texto pequeno | não medida (`--detail` existe) |
-| 4 | **PDF com texto digital:** extrair o texto e mandar só texto; só rasteriza se não houver camada de texto | tokens e acerto em PDF | não medida |
+| 3 | **Reduzir a foto** antes de enviar (lado maior ≤ N px, JPEG) e `detail` / `media_resolution` mais baixos | tokens de entrada e erro em texto pequeno | **implementada** (`--max-side N`, `--detail`); efeito em qualidade e custo ainda não medido |
+| 4 | **PDF com texto digital:** extrair o texto e mandar só texto; PDF sem camada de texto segue como arquivo | tokens e acerto em PDF | **implementada** (`--pdf-text`); sem API: o texto extraído manteve os 276 nomes de item dos 12 PDFs digitais sintéticos e os 6 PDFs escaneados foram detectados sem texto. Efeito em qualidade e custo ainda não medido |
 | 5 | **Cache de prompt:** prefixo fixo (instruções e schema) primeiro, o variável por último | tokens de entrada em cache | não medida (o custo já separa entrada em cache) |
 | 6 | **Tirar ou manter o inventário `sections`** | custo contra fidelidade | `--no-inventory` existe, não medida |
 | 7 | **OCR local + LLM de texto** (caminho C) | custo e erro de leitura do OCR | não feito |
@@ -238,7 +242,9 @@ Nenhum foi testado aqui. Existência, tamanho e licença foram conferidos na API
 
 Para rodar no Mac: `mlx-vlm` (Apple Silicon), `llama-cpp-python` (GGUF) ou Ollama. Para OCR: RapidOCR, EasyOCR, docTR; o `ocrmac` usa o framework da Apple e só serve no Mac.
 
-**Licença de PDF:** para extrair o texto de PDF digital use `pypdf` (BSD-3) ou `pdfminer.six` (MIT). O PyMuPDF é AGPL 3.0 ou licença comercial paga, o que não combina com um repositório MIT.
+**Licença de PDF:** o laboratório usa `pypdf` (BSD-3) para extrair o texto de PDF digital; `pdfminer.six` (MIT) seria a alternativa. O PyMuPDF é AGPL 3.0 ou licença comercial paga, o que não combina com um repositório MIT.
+
+**Limite do PDF como texto:** a ordem do texto extraído depende de como o PDF foi gerado. Nos PDFs sintéticos de duas colunas, o modo padrão do `pypdf` manteve 276 de 276 nomes inteiros e o modo `layout` só 262, porque cola o fim de uma coluna ao começo da outra. PDFs de outras origens podem ordenar diferente, e só um conjunto real diria.
 
 ## Como integrar em um produto
 
@@ -260,7 +266,8 @@ A conferência da cascata (contagem de itens contra o inventário, preço que n�
 - [x] **Dia 1:** gerador sintético com gabarito, avaliador (estrito e tolerante) validado, tabela de preços com fonte, teto de gasto, leitor da OpenAI, varredura de modelos, primeira rodada real.
 - [x] Ler os 60 cardápios com os dois melhores da rodada pequena (feito: `gpt-6-luna` e `gpt-4.1-mini`).
 - [ ] Ler os 60 com a régua `gpt-4.1` (~US$ 0,72) para fechar a comparação, sempre sob teto de gasto.
-- [ ] **Dia 2:** leitores da Anthropic e do Gemini na mesma tabela, e as alavancas na ordem em que o custo medido manda (tamanho da foto primeiro, porque nos modelos baratos a entrada domina).
+- [x] **Dia 2, parte sem custo:** alavancas 3 (reduzir a foto) e 4 (texto do PDF) implementadas e testadas.
+- [ ] **Dia 2, parte que gasta:** medir as alavancas 3 e 4 com a API (a entrada domina nos modelos baratos, então o tamanho da foto vem primeiro) e incluir os leitores da Anthropic e do Gemini na mesma tabela. Precisa de chave de cada provedor e de teto de gasto aprovado.
 - [ ] **Dia 3:** OCR e modelos de visão locais (caminhos C e D).
 - [ ] **Dia 4:** cascata, serviço auxiliar, relatório final e artigo.
 - [ ] Cardápios reais, com autorização de cada lojista, **só no privado**: nunca neste repositório.

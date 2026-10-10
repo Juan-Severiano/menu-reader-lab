@@ -204,6 +204,10 @@ def run_sweep(
             results.append({"spec": spec, "skipped": "teto total esgotado"})
             continue
         run_id = f"{prefix}-{model}{'-' + effort if effort else ''}-{tag}"
+        # Uma execução existente custou dinheiro: não se sobrescreve sem querer.
+        if (runs_dir / run_id / "summary.json").exists():
+            results.append({"spec": spec, "skipped": f"a execução {run_id} já existe"})
+            continue
         try:
             summary = run(
                 reader_factory(model, effort_or_none),

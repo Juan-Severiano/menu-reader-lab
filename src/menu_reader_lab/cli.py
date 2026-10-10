@@ -36,6 +36,8 @@ def make_reader(args: argparse.Namespace) -> Reader:
             inventory=inventory,
             max_output_tokens=args.max_output_tokens,
             reasoning_effort=args.reasoning_effort,
+            max_side=args.max_side,
+            pdf_as_text=args.pdf_text,
         )
     raise SystemExit(f"Leitor desconhecido: {args.reader}")
 
@@ -72,6 +74,8 @@ def main(argv: list[str] | None = None) -> None:
     runp.add_argument("--detail", default="high", choices=["low", "high", "auto"])
     runp.add_argument("--reasoning-effort", help="esforço de raciocínio (none, low, medium, ...)")
     runp.add_argument("--max-output-tokens", type=int, help="limite de saída (padrão automático)")
+    runp.add_argument("--max-side", type=int, help="reduz a foto: lado maior em no máximo N px")
+    runp.add_argument("--pdf-text", action="store_true", help="PDF digital vai como texto")
     runp.add_argument("--noise", type=float, default=0.1, help="intensidade do leitor ruidoso")
     runp.add_argument("--no-inventory", action="store_true", help="sem o inventário `sections`")
     runp.add_argument("--limit", type=int, help="só os N primeiros cardápios")
@@ -88,6 +92,8 @@ def main(argv: list[str] | None = None) -> None:
     sweep.add_argument("--styles", nargs="*", help="só estes estilos")
     sweep.add_argument("--detail", default="high", choices=["low", "high", "auto"])
     sweep.add_argument("--max-output-tokens", type=int)
+    sweep.add_argument("--max-side", type=int, help="reduz a foto: lado maior em no máximo N px")
+    sweep.add_argument("--pdf-text", action="store_true", help="PDF digital vai como texto")
     sweep.add_argument("--no-inventory", action="store_true")
     sweep.add_argument("--prefix", default="openai", help="início do nome de cada execução")
     sweep.add_argument("--data", type=Path, default=Path("data/synthetic"))
@@ -121,7 +127,12 @@ def main(argv: list[str] | None = None) -> None:
                 args.max_usd,
                 not args.no_inventory,
                 args.styles,
-                {"detail": args.detail, "reasoning_effort": args.reasoning_effort}
+                {
+                    "detail": args.detail,
+                    "reasoning_effort": args.reasoning_effort,
+                    "max_side": args.max_side,
+                    "pdf_text": args.pdf_text,
+                }
                 if args.reader == "openai"
                 else None,
             )
@@ -138,6 +149,8 @@ def main(argv: list[str] | None = None) -> None:
                 inventory=not args.no_inventory,
                 max_output_tokens=args.max_output_tokens,
                 reasoning_effort=effort,
+                max_side=args.max_side,
+                pdf_as_text=args.pdf_text,
             )
 
         results = run_sweep(
@@ -146,13 +159,15 @@ def main(argv: list[str] | None = None) -> None:
             args.data,
             args.runs,
             args.prefix,
-            args.detail,
+            args.detail
+            + (f"-lado{args.max_side}" if args.max_side else "")
+            + ("-pdftexto" if args.pdf_text else ""),
             args.limit,
             args.max_usd_total,
             args.max_usd_each or args.max_usd_total,
             not args.no_inventory,
             args.styles,
-            {"detail": args.detail},
+            {"detail": args.detail, "max_side": args.max_side, "pdf_text": args.pdf_text},
         )
         total = 0.0
         for item in results:
