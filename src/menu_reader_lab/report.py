@@ -61,38 +61,36 @@ def style_table(summary: dict[str, Any]) -> str:
 
 def _label(summary: dict[str, Any]) -> str:
     effort = (summary.get("config") or {}).get("reasoning_effort")
-    return f"{summary['model']} ({effort})" if effort else summary["model"]
+    name = f"{summary['model']} ({effort})" if effort else summary["model"]
+    return f"{name}, {summary['menus_run']} cardápios"
 
 
 def scatter(summaries: list[dict[str, Any]], path: Path) -> bool:
-    """Qualidade (F1) contra custo por cardápio. Só entram execuções com custo medido."""
-    points = [
-        (s["cost_per_menu_usd"], s["overall"]["item_f1"], _label(s))
-        for s in summaries
-        if s["cost_per_menu_usd"]
-    ]
-    if len(points) < 2:
+    """Qualidade (F1) contra custo por cardápio. Só entram execuções com custo medido.
+
+    Cada execução vira um ponto na legenda (círculo: menos de 30 cardápios, quadrado: 30 ou mais),
+    em vez de rótulos no gráfico, que se sobrepõem quando os pontos ficam juntos.
+    """
+    runs = [s for s in summaries if s["cost_per_menu_usd"]]
+    if len(runs) < 2:
         return False
-    fig, ax = plt.subplots(figsize=(7.2, 4.4))
-    # Rótulos que caem no mesmo lugar sobem em degraus, em vez de se sobrepor.
-    placed: list[tuple[float, float]] = []
-    for cost, f1, label in sorted(points):
-        ax.scatter(cost, f1)
-        step = sum(1 for c, f in placed if abs(f - f1) < 0.004 and c * 3 > cost)
-        ax.annotate(
-            label,
-            (cost, f1),
-            textcoords="offset points",
-            xytext=(6, 5 + 11 * step),
-            fontsize=8,
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for s in sorted(runs, key=lambda x: x["cost_per_menu_usd"]):
+        ax.scatter(
+            s["cost_per_menu_usd"],
+            s["overall"]["item_f1"],
+            marker="s" if s["menus_run"] >= 30 else "o",
+            s=55,
+            label=_label(s),
         )
-        placed.append((cost, f1))
     ax.set_xscale("log")
-    ax.set_ylim(top=max(f1 for _, f1, _ in points) + 0.006)
+    f1s = [s["overall"]["item_f1"] for s in runs]
+    ax.set_ylim(min(f1s) - 0.004, max(f1s) + 0.004)
     ax.set_xlabel("US$ por cardápio (escala log)")
     ax.set_ylabel("F1 de itens (estrito; eixo cortado)")
     ax.set_title("Qualidade contra custo")
     ax.grid(alpha=0.3)
+    ax.legend(fontsize=8, loc="center right")
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     plt.close(fig)

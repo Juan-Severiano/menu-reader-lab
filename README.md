@@ -8,7 +8,7 @@ A pergunta que guia o projeto: **qual é a leitura mais barata que ainda passa n
 
 ## Estado
 
-Projeto no **Dia 1**, com a **primeira rodada real** feita (10 cardápios, só modelos da OpenAI). O que existe e o que não existe:
+Projeto no **Dia 1**, com duas rodadas reais feitas (7 modelos da OpenAI em 10 cardápios; 2 deles nos 60). O que existe e o que não existe:
 
 | | Estado |
 |---|---|
@@ -16,15 +16,15 @@ Projeto no **Dia 1**, com a **primeira rodada real** feita (10 cardápios, só m
 | Avaliador (itens, preço, categoria, itens inventados, JSON válido) | feito e validado com leitores de ruído conhecido |
 | Custo em dólar por leitura, com tabela de preços versionada e fonte | feito |
 | Teto de gasto obrigatório em leitor pago | feito |
-| Leitor da OpenAI (a régua) | feito e executado contra a API real em 7 modelos (ver [Primeiros resultados](#primeiros-resultados-reais)) |
+| Leitor da OpenAI (a régua) | feito e executado contra a API real em 7 modelos (ver [Resultados reais](#resultados-reais)) |
 | Varredura de vários modelos sob um teto total de gasto (`sweep`) | feito |
 | Reavaliar execuções salvas sem chamar a API (`rescore`) | feito |
 | Leitores da Anthropic e do Gemini | não feito |
-| Alavancas de otimização (reduzir imagem, texto do PDF, cache, modelo menor, saída compacta) | não feito |
+| Alavancas de otimização (reduzir imagem, texto do PDF, cache, saída compacta) | não feito (só "modelo menor" foi medido) |
 | Modelos de visão locais, OCR local e cascata | não feito |
 | Cardápios reais | não feito (ficam no privado, com autorização de cada lojista) |
 
-Os resultados reais cobrem **10 cardápios (um por estilo), 243 itens, só OpenAI**. É pouco para cravar ranking entre modelos parecidos; ver as limitações abaixo.
+Os resultados reais cobrem **7 modelos em 10 cardápios (243 itens) e 2 modelos nos 60 (1.561 itens), só OpenAI e só sintético**. Dá para ver o custo e o tipo de erro de cada um, mas não para cravar ranking entre modelos parecidos; ver as limitações abaixo.
 
 ## Como funciona
 
@@ -95,9 +95,28 @@ Antes de medir qualquer modelo, o avaliador foi testado com leitores de custo ze
 
 Com 10% de ruído, a revocação esperada é perto de 0,86 (10% perdidos mais ~5% renomeados) e o inventado perto de 0,10: bate. Os 50 testes automatizados cobrem isso, o gerador, o cálculo de custo, o formato do pedido à OpenAI, o teto de gasto, a varredura, o casamento tolerante e a reavaliação.
 
-## Primeiros resultados reais
+## Resultados reais
 
-Cardápios sintéticos (semente 7), os 10 primeiros, **um de cada estilo**, 243 itens. Todos com `detail=high` e o inventário `sections`. Gasto total da rodada: **US$ 0,21** (teto de US$ 1 para a régua e de US$ 0,50 para a varredura). F1 e preço são os do modo estrito, o F1 tolerante vem ao lado. Preços de 01/11/2026, em [`pricing.json`](src/menu_reader_lab/pricing.json).
+Só a OpenAI foi medida até aqui, e só em cardápios sintéticos. Gasto total das duas rodadas: **US$ 0,43**.
+
+### Os 60 cardápios (1.561 itens), dois modelos
+
+Os dois modelos que melhor se saíram na rodada pequena (abaixo) leram o conjunto inteiro, com `detail=high` e o inventário `sections`, sob teto de US$ 0,50 (gastaram US$ 0,22). A régua `gpt-4.1` **não** rodou nos 60 (custaria ~US$ 0,72, e não foi aprovado esse gasto): a comparação direta com ela está só no subconjunto de 10 cardápios mais abaixo.
+
+| Modelo | F1 estrito | F1 tolerante | Preço certo | Categoria certa | Cardápios sem nenhum erro | Tokens por cardápio: entrada / saída | US$ por cardápio | Mediana / p95 |
+|---|---|---|---|---|---|---|---|---|
+| `gpt-6-luna`, sem raciocínio | 0,9994 | 0,9994 | 0,9987 | 0,9968 | 55 de 60 | 5.048 / 769 | 0,00089 | 7,0 s / 11,7 s |
+| `gpt-4.1-mini` | 0,9942 | 0,9968 | 0,9961 | 0,9955 | 51 de 60 (estrito: 49) | 3.985 / 736 | 0,00277 | 8,6 s / 13,0 s |
+
+- **`gpt-6-luna`: 1.560 de 1.561 itens casados.** Sobrou 1 item a mais ("Bolo Caseiro", numa foto desfocada) e faltou 1 ("Tapioca de Queijo"). Os outros dois erros são **dois preços trocados entre itens vizinhos** num quadro-negro (Açaí Fit com 29,50 em vez de 30,99, e o contrário). Custo total para ler os 60: US$ 0,053.
+- **`gpt-4.1-mini`: 9 itens perdidos e 1 a mais na métrica tolerante.** Perdeu 4 itens de um PDF de duas colunas, 3 numa foto desfocada e 1 em outra; escreveu "Galinahd" no lugar de "Galinhada" num PDF escaneado. Errou 6 preços, em dois cardápios (pouca luz e várias fotos), quase todos por **troca de preço entre itens vizinhos**. Custou 3,1× o `gpt-6-luna`.
+- **Os erros dos dois são do mesmo tipo:** item vizinho trocado, texto desfocado ou coluna perdida. Nenhum devolveu JSON inválido nem falhou na chamada (0 erros em 120 leituras).
+- **A rodada pequena foi pessimista para o `gpt-4.1-mini`:** nos 10 cardápios ele tirou 0,9668 estrito, nos 60 tirou 0,9942. Os 10 primeiros são os mesmos cardápios dos 60 (incluem o PDF de duas colunas e a foto desfocada, que são os mais difíceis), então não são uma amostra independente.
+- **O que isso ainda não prova:** é um conjunto sintético de uma única semente, fonte limpa, uma só família de modelos. A diferença entre os dois (2 contra 10 erros de item em 1.561) é pequena em número absoluto, embora vá na mesma direção da rodada de 10 cardápios.
+
+### Sete modelos em 10 cardápios (243 itens)
+
+Cardápios sintéticos (semente 7), os 10 primeiros, **um de cada estilo**, 243 itens. Todos com `detail=high` e o inventário `sections`. Gasto desta rodada: **US$ 0,21** (teto de US$ 1 para a régua e de US$ 0,50 para a varredura). F1 e preço são os do modo estrito, o F1 tolerante vem ao lado. Preços de 01/11/2026, em [`pricing.json`](src/menu_reader_lab/pricing.json).
 
 | Modelo | F1 estrito | F1 tolerante | Preço certo | Tokens por cardápio: entrada / saída (raciocínio) | US$ por cardápio | Mediana |
 |---|---|---|---|---|---|---|
@@ -110,6 +129,8 @@ Cardápios sintéticos (semente 7), os 10 primeiros, **um de cada estilo**, 243 
 | `gpt-4.1-nano` | n/d | n/d | n/d | n/d | n/d | a API respondeu 404: modelo descontinuado, embora a página de preços ainda o liste |
 
 ![Qualidade contra custo](docs/results.png)
+
+Círculo: execução de 10 cardápios. Quadrado: execução dos 60. O eixo vertical é cortado, então a distância entre os pontos parece maior do que é.
 
 Tabela completa, com precisão, revocação e latência p95: [`docs/results.md`](docs/results.md).
 
@@ -159,22 +180,96 @@ Leitor pago **não roda sem `--max-usd`** e não roda com modelo que não tenha 
 
 `pricing.json` guarda o preço por milhão de tokens, a data da consulta e o link de cada fonte. Preços mudam (o Gemini tem reajuste agendado para 30/11/2026 e 31/12/2026): reconfira antes de tirar conclusões de custo.
 
+## O plano: cinco caminhos para ler um cardápio
+
+O laboratório existe para comparar estes caminhos com o mesmo gabarito e as mesmas métricas. **Só o A e parte do B foram medidos até aqui** (e só com a OpenAI).
+
+| | Caminho | Em uma linha | Onde roda | Estado |
+|---|---|---|---|---|
+| A | VLM na nuvem, direto | modelo de visão recebe as fotos ou o PDF e devolve o JSON. É a **régua** | nuvem | medido (OpenAI) |
+| B | VLM na nuvem, otimizado | reduz a imagem, usa o texto do PDF, cache de prompt, modelo menor, saída compacta | nuvem | só "modelo menor" foi medido |
+| C | OCR local + LLM só de texto | o OCR lê a imagem de graça e o LLM recebe **texto**, sem imagem | OCR local, LLM na nuvem ou local | não feito |
+| D | VLM local ponta a ponta | um modelo de visão leve lê a foto na máquina, zero token pago | local | não feito |
+| E | **Cascata** | tenta o local, confere o resultado e só chama a nuvem se a conferência falhar | local primeiro | não feito |
+
+A cascata (E) é a parte que mais interessa: a conferência pode usar sinais baratos, como JSON inválido, contagem de itens divergente do inventário `sections`, preço que não vira número, categoria vazia e baixa confiança do OCR.
+
+## Onde está o dinheiro
+
+**Tokens por imagem, segundo a documentação dos provedores (lida em 01/11/2026; muda, confira):**
+
+- **Anthropic:** `⌈largura/28⌉ × ⌈altura/28⌉`, no máximo 1.568 tokens nos modelos padrão e 4.784 nos 4.7 em diante. A documentação recomenda reduzir a imagem antes de enviar quando não precisa de tanta fidelidade.
+- **OpenAI, `gpt-4.1`:** `85 + 170 × blocos` de 512 px, depois de caber em 2048×2048 e com o menor lado em 768; `detail: low` custa 85 tokens. Os modelos novos contam por blocos de 32 px com multiplicador 1,2 (até 2.500 blocos no `high`, ou seja, até 3.000 tokens).
+- **Gemini:** `media_resolution` define o custo por imagem (`low` 280, `medium` 560, `high` 1.120 tokens). Para PDF, a documentação diz que `medium` já traz o texto nativo e que `high` raramente melhora o OCR.
+
+**Medido aqui (10 cardápios):** no `gpt-4.1` a saída (o JSON escrito) é ~68% do custo; nos modelos novos e baratos a **entrada** domina, porque a imagem vira ~4.800 tokens. Por isso a ordem das alavancas muda conforme o modelo.
+
+Preços por milhão de tokens estão em [`pricing.json`](src/menu_reader_lab/pricing.json), com a data e o link de cada fonte.
+
+## Alavancas de otimização
+
+| # | Alavanca | O que mede | Estado |
+|---|---|---|---|
+| 1 | **Saída compacta:** chaves curtas, sem campos opcionais vazios, formato por linha | tokens de saída por item | não medida |
+| 2 | **Modelo menor** | F1 de itens contra a régua | medida só na OpenAI |
+| 3 | **Reduzir a foto** antes de enviar (lado maior ≤ 1.568 px, JPEG) e `detail` / `media_resolution` mais baixos | tokens de entrada e erro em texto pequeno | não medida (`--detail` existe) |
+| 4 | **PDF com texto digital:** extrair o texto e mandar só texto; só rasteriza se não houver camada de texto | tokens e acerto em PDF | não medida |
+| 5 | **Cache de prompt:** prefixo fixo (instruções e schema) primeiro, o variável por último | tokens de entrada em cache | não medida (o custo já separa entrada em cache) |
+| 6 | **Tirar ou manter o inventário `sections`** | custo contra fidelidade | `--no-inventory` existe, não medida |
+| 7 | **OCR local + LLM de texto** (caminho C) | custo e erro de leitura do OCR | não feito |
+| 8 | **VLM local** (D) e **cascata** (E) | % resolvido sem nuvem | não feito |
+| 9 | **Batch** (mais barato na API) | só serve a importação em lote, não a fluxo interativo | não feito |
+
+## Modelos locais candidatos
+
+Nenhum foi testado aqui. Existência, tamanho e licença foram conferidos na API do Hugging Face em 01/11/2026; confira os termos antes de usar.
+
+| Modelo | Parâmetros | Licença | Observação |
+|---|---|---|---|
+| `Qwen/Qwen3-VL-2B-Instruct` | 2,1 B | Apache 2.0 | ponto de partida |
+| `Qwen/Qwen3-VL-4B-Instruct` | 4,4 B | Apache 2.0 | candidato forte (estimativa: ~3 GB em 4 bits) |
+| `HuggingFaceTB/SmolVLM2-2.2B-Instruct` | 2,2 B | Apache 2.0 | |
+| `ibm-granite/granite-docling-258M` | 0,3 B | Apache 2.0 | pensado para documentos e PDF |
+| `PaddlePaddle/PaddleOCR-VL` | 1,0 B | Apache 2.0 | OCR de documentos |
+| `microsoft/Florence-2-base` | 0,2 B | MIT | OCR, fraco para saída estruturada |
+| `vikhyatk/moondream2` | 1,9 B | Apache 2.0 | |
+| `google/gemma-3-4b-it` | 4,3 B | licença Gemma | confira os termos |
+| `Qwen/Qwen2.5-VL-3B-Instruct` | 3,8 B | licença própria | confira os termos |
+
+Para rodar no Mac: `mlx-vlm` (Apple Silicon), `llama-cpp-python` (GGUF) ou Ollama. Para OCR: RapidOCR, EasyOCR, docTR; o `ocrmac` usa o framework da Apple e só serve no Mac.
+
+**Licença de PDF:** para extrair o texto de PDF digital use `pypdf` (BSD-3) ou `pdfminer.six` (MIT). O PyMuPDF é AGPL 3.0 ou licença comercial paga, o que não combina com um repositório MIT.
+
+## Como integrar em um produto
+
+O leitor é uma interface pequena (`Reader`: recebe arquivos, devolve o JSON do schema acima), então qualquer produto que já tenha um passo "ler cardápio → rascunho → revisão humana → gravar" troca o leitor sem mudar o resto. Modelos locais costumam ser Python; se o produto não for, o caminho é um **serviço auxiliar** (`POST /read` que recebe o arquivo e devolve o JSON) chamado por HTTP.
+
+A conferência da cascata (contagem de itens contra o inventário, preço que não vira número) é a mesma que um produto já faz antes de gravar, e é onde a decisão "escalar para a nuvem" entra.
+
 ## Limitações
 
 - **Sintético é mais fácil que real.** Fonte limpa, sem sujeira, sem letra de mão, sem foto de cardápio dobrado. Os números daqui são um teto, e o que decide é o conjunto real.
 - Só as fontes DejaVu (as que vêm com o matplotlib, para o resultado ser o mesmo em qualquer máquina) e só português do Brasil.
 - Ainda não há adicionais (grupos de opções) no schema, só categorias, produtos, descrição e preço.
 - O casamento por nome tem limiar fixo. Nomes muito parecidos de verdade podem casar errado, e o teste cobre só o caso das pizzas por tamanho.
-- **A rodada real tem 10 cardápios**, um por estilo, e só a OpenAI. Os 60 cardápios ainda não foram todos lidos por um modelo pago, então não há intervalo de confiança nem leitura por estilo com mais de um exemplo.
+- **Só dois modelos leram os 60 cardápios**, e só da OpenAI. Os outros cinco e a régua `gpt-4.1` têm só 10 cardápios (um por estilo), então a comparação entre eles não tem intervalo de confiança. Os 10 fazem parte dos 60. Há 6 cardápios por estilo nos 60: pouco para falar de um estilo isolado.
 - O modo tolerante nasceu depois dos resultados (ver acima). Ele resolve um problema real do avaliador, mas quem compara números deste README com os de outro avaliador precisa olhar o estrito.
 
-## Próximos passos
+## Roadmap
 
-1. Ler os 60 cardápios com os modelos que empataram em cima (`gpt-6-luna`) e com a régua, para ter n suficiente, sob teto de gasto.
-2. Leitores da Anthropic e do Gemini na mesma tabela.
-3. Alavancas, na ordem em que o custo medido manda: reduzir a foto antes de enviar (a entrada domina nos modelos baratos), texto do PDF digital em vez de visão, cache de prompt, saída compacta, com e sem o inventário.
-4. OCR local e modelos de visão leves (Qwen3-VL, SmolVLM2, granite-docling) e a **cascata**: tenta o local e só chama a nuvem quando a conferência falha.
-5. Cardápios reais, com autorização, só no privado.
+- [x] **Dia 1:** gerador sintético com gabarito, avaliador (estrito e tolerante) validado, tabela de preços com fonte, teto de gasto, leitor da OpenAI, varredura de modelos, primeira rodada real.
+- [x] Ler os 60 cardápios com os dois melhores da rodada pequena (feito: `gpt-6-luna` e `gpt-4.1-mini`).
+- [ ] Ler os 60 com a régua `gpt-4.1` (~US$ 0,72) para fechar a comparação, sempre sob teto de gasto.
+- [ ] **Dia 2:** leitores da Anthropic e do Gemini na mesma tabela, e as alavancas na ordem em que o custo medido manda (tamanho da foto primeiro, porque nos modelos baratos a entrada domina).
+- [ ] **Dia 3:** OCR e modelos de visão locais (caminhos C e D).
+- [ ] **Dia 4:** cascata, serviço auxiliar, relatório final e artigo.
+- [ ] Cardápios reais, com autorização de cada lojista, **só no privado**: nunca neste repositório.
+
+## Fontes
+
+- [Anthropic: visão](https://platform.claude.com/docs/en/build-with-claude/vision)
+- [OpenAI: custo de imagens](https://developers.openai.com/api/docs/guides/images-vision) e [preços](https://developers.openai.com/api/docs/pricing)
+- [Gemini: `media_resolution`](https://ai.google.dev/gemini-api/docs/media-resolution) e [preços](https://ai.google.dev/gemini-api/docs/pricing)
 
 ## Licença
 

@@ -1,0 +1,279 @@
+{
+  "run_id": "full60-gpt-4.1-mini-high",
+  "reader": "openai",
+  "model": "gpt-4.1-mini",
+  "config": {
+    "inventory": true,
+    "detail": "high",
+    "reasoning_effort": null
+  },
+  "dataset": {
+    "dir": "data/synthetic",
+    "seed": 7,
+    "menus_total": 60
+  },
+  "menus_run": 60,
+  "stopped_by_budget": false,
+  "aborted_on_errors": false,
+  "first_error": null,
+  "max_usd": 0.25,
+  "spent_usd": 0.166316,
+  "price_unknown": false,
+  "overall": {
+    "menus": 60,
+    "item_precision": 0.9968,
+    "item_recall": 0.9917,
+    "item_f1": 0.9942,
+    "price_accuracy": 0.9961,
+    "category_accuracy": 0.9955,
+    "hallucination_rate": 0.0032,
+    "json_valid_rate": 1.0,
+    "exact_menu_rate": 0.8167
+  },
+  "overall_tolerant": {
+    "menus": 60,
+    "item_precision": 0.9994,
+    "item_recall": 0.9942,
+    "item_f1": 0.9968,
+    "price_accuracy": 0.9961,
+    "category_accuracy": 0.9955,
+    "hallucination_rate": 0.0006,
+    "json_valid_rate": 1.0,
+    "exact_menu_rate": 0.85
+  },
+  "by_style": {
+    "chalkboard": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    },
+    "pdf_digital_2col": {
+      "menus": 6,
+      "item_precision": 0.9929,
+      "item_recall": 0.9655,
+      "item_f1": 0.979,
+      "price_accuracy": 1.0,
+      "category_accuracy": 0.9714,
+      "hallucination_rate": 0.0071,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.5
+    },
+    "pdf_digital_clean": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    },
+    "pdf_scan": {
+      "menus": 6,
+      "item_precision": 0.9836,
+      "item_recall": 0.9836,
+      "item_f1": 0.9836,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0164,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.6667
+    },
+    "photo_2col_serif": {
+      "menus": 6,
+      "item_precision": 0.9932,
+      "item_recall": 0.9932,
+      "item_f1": 0.9932,
+      "price_accuracy": 1.0,
+      "category_accuracy": 0.9862,
+      "hallucination_rate": 0.0068,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.6667
+    },
+    "photo_blur": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 0.9801,
+      "item_f1": 0.9899,
+      "price_accuracy": 1.0,
+      "category_accuracy": 0.9949,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.6667
+    },
+    "photo_lowlight": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 0.9748,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.8333
+    },
+    "photo_multipage": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 0.9818,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.8333
+    },
+    "photo_straight": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    },
+    "screenshot_compact": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    }
+  },
+  "by_style_tolerant": {
+    "chalkboard": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    },
+    "pdf_digital_2col": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 0.9724,
+      "item_f1": 0.986,
+      "price_accuracy": 1.0,
+      "category_accuracy": 0.9716,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.6667
+    },
+    "pdf_digital_clean": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    },
+    "pdf_scan": {
+      "menus": 6,
+      "item_precision": 0.9945,
+      "item_recall": 0.9945,
+      "item_f1": 0.9945,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0055,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.8333
+    },
+    "photo_2col_serif": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 0.9863,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.6667
+    },
+    "photo_blur": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 0.9801,
+      "item_f1": 0.9899,
+      "price_accuracy": 1.0,
+      "category_accuracy": 0.9949,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.6667
+    },
+    "photo_lowlight": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 0.9748,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.8333
+    },
+    "photo_multipage": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 0.9818,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 0.8333
+    },
+    "photo_straight": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    },
+    "screenshot_compact": {
+      "menus": 6,
+      "item_precision": 1.0,
+      "item_recall": 1.0,
+      "item_f1": 1.0,
+      "price_accuracy": 1.0,
+      "category_accuracy": 1.0,
+      "hallucination_rate": 0.0,
+      "json_valid_rate": 1.0,
+      "exact_menu_rate": 1.0
+    }
+  },
+  "tokens_per_menu": {
+    "input": 3984.9,
+    "output": 736.2,
+    "reasoning": 0.0
+  },
+  "cost_per_menu_usd": 0.002772,
+  "latency_s": {
+    "p50": 8.611,
+    "p95": 13.042
+  },
+  "errors": 0
+}
